@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Trắc Nghiệm AI Dành Cho Trường Học</title>
+    <!-- Tải Tailwind CSS để dựng giao diện nhanh -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Tích hợp MathJax để hiển thị công thức Toán, Lý, Hóa chuyên nghiệp -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }
+        };
+    </script>
+
+    <style>
+        /* Tùy chỉnh thanh cuộn cho đẹp mắt */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Tùy chỉnh hiệu ứng cho thẻ radio */
+        .radio-custom:checked+label {
+            background-color: #ebf4ff;
+            border-color: #3b82f6;
+        }
+
+        /* Căn chỉnh vùng chứa công thức và hình SVG */
+        .math-container {
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 5px 0;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        /* Hiệu ứng xuất hiện mượt mà */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen font-sans text-gray-800">
+
+    <script>
+        // --- CHỈ CẦN DÁN LINK WEB APP CỦA BẠN VÀO ĐÂY ---
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz6rK0mYDWo1ZhmMPE56S4eFsqPF_d6LBCNny_2H_Azz_3hs5sem-ZOH9oci28Vdo0CIw/exec";
+
+        // Hệ thống sẽ tự lấy API Key từ Google Sheet qua backend (Code.gs)
+        let apiKey = ""; 
+    </script>
+
+    <!-- Header của trang -->
+    <header class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold cursor-pointer hover:text-indigo-200 transition"
+                onclick="goHome()">
+                <i class="fas fa-graduation-cap mr-2"></i>EduAI Platform
+            </h1>
+            <div class="space-x-2">
+                <button onclick="showScreen('student-login-screen')"
+                    class="bg-indigo-500 hover:bg-indigo-400 px-3 py-2 rounded-lg text-sm font-semibold transition shadow-sm">
+                    <i class="fas fa-user-graduate"></i> Học Sinh
+                </button>
+                <button onclick="showScreen('parent-login-screen')"
+                    class="bg-white text-indigo-600 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition shadow">
+                    <i class="fas fa-user-shield"></i> Phụ Huynh
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-4 mt-6">
+
+        <!-- MÀN HÌNH TRANG CHỦ -->
+        <div id="home-screen" class="text-center py-10 fade-in">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-6">Nền Tảng Đánh Giá Năng Lực Bằng AI</h2>
+            <p class="text-gray-600 mb-10 max-w-2xl mx-auto">Hệ thống tạo đề tự động thông minh, hiển thị công thức
+                chuẩn SGK, quản lý điểm số bảo mật giữa Học sinh và Phụ huynh.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition border border-gray-100 cursor-pointer transform hover:-translate-y-1"
+                    onclick="showScreen('register-screen')">
+                    <div
+                        class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Đăng Ký Tài Khoản</h3>
+                    <p class="text-gray-500 text-sm">Dành cho Phụ huynh tạo hồ sơ cho con em lần đầu.</p>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition border border-gray-100 cursor-pointer transform hover:-translate-y-1"
+                    onclick="showScreen('student-login-screen')">
+                    <div
+                        class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Vào Phòng Thi</h3>
+                    <p class="text-gray-500 text-sm">Học sinh sử dụng mã ID để chọn môn và làm bài.</p>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition border border-gray-100 cursor-pointer transform hover:-translate-y-1"
+                    onclick="showScreen('parent-login-screen')">
+                    <div
+                        class="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Tra Cứu Điểm</h3>
+                    <p class="text-gray-500 text-sm">Phụ huynh xem tiến độ học tập và đổi mật khẩu.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MÀN HÌNH 1: ĐĂNG KÝ HỌC SINH -->
+        <div id="register-screen" class="hidden bg-white rounded-2xl shadow-lg p-8 max-w-xl mx-auto fade-in">
+            <h2 class="text-2xl font-bold text-center mb-6 text-gray-800"><i
+                    class="fas fa-user-plus text-green-500 mr-2"></i>Đăng Ký Hồ Sơ Học Sinh</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Họ và tên học sinh</label>
+                    <input type="text" id="reg-student-name" placeholder="VD: Nguyễn Văn A"
+                        class="w-full mt-1 border-gray-300 rounded-lg p-3 border focus:ring-2 focus:ring-green-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Lớp</label>
+                    <select id="reg-class-name"
+                        class="w-full mt-1 border-gray-300 rounded-lg p-3 border focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="Lớp 1">Lớp 1</option>
+                        <option value="Lớp 2">Lớp 2</option>
+                        <option value="Lớp 3">Lớp 3</option>
+                        <option value="Lớp 4">Lớp 4</option>
+                        <option value="Lớp 5">Lớp 5</option>
+                        <option value="Lớp 6">Lớp 6</option>
+                        <option value="Lớp 7">Lớp 7</option>
+                        <option value="Lớp 8">Lớp 8</option>
+                        <option value="Lớp 9">Lớp 9</option>
+                        <option value="Lớp 10">Lớp 10</option>
+                        <option value="Lớp 11">Lớp 11</option>
+                        <option value="Lớp 12">Lớp 12</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Tên Phụ Huynh</label>
+                    <input type="text" id="reg-parent-name" placeholder="VD: Nguyễn Văn B"
+                        class="w-full mt-1 border-gray-300 rounded-lg p-3 border focus:ring-2 focus:ring-green-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Số Điện Thoại</label>
+                    <input type="tel" id="reg-parent-phone" placeholder="VD: 0987654321"
+                        class="w-full mt-1 border-gray-300 rounded-lg p-3 border focus:ring-2 focus:ring-green-500 outline-none">
+                </div>
+                <button onclick="registerStudent()"
+                    class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition mt-6 shadow-md">
+                    Tạo Tài Khoản
+                </button>
+                <div class="text-center mt-4 border-t pt-4">
+                    <button onclick="goHome()" class="text-sm text-gray-500 hover:text-gray-700"><i
+                            class="fas fa-arrow-left mr-1"></i> Quay lại trang chủ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MÀN HÌNH 2: HỌC SINH ĐĂNG NHẬP -->
+        <div id="student-login-screen" class="hidden bg-white rounded-2xl shadow-lg p-8 max-w-md mx-auto mt-10 fade-in">
+            <div class="text-center mb-6">
+                <div
+                    class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Đăng Nhập Thi</h2>
+                <p class="text-gray-500 text-sm mt-1">Nhập ID Học sinh do hệ thống cấp</p>
+            </div>
+            <input type="text" id="login-student-id" placeholder="VD: HS1234"
+                class="w-full border-gray-300 rounded-lg p-4 text-center font-bold text-xl tracking-widest border focus:ring-2 focus:ring-blue-500 outline-none mb-6 uppercase">
+            <button onclick="studentLogin()"
+                class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-md">
+                Vào Phòng Thi <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+            <div class="text-center mt-4">
+                <button onclick="goHome()" class="text-sm text-gray-500 hover:text-gray-700">Quay lại</button>
+            </div>
+        </div>
+
+        <!-- MÀN HÌNH 3: CHỌN MÔN THI (SAU KHI ĐĂNG NHẬP) -->
+        <div id="setup-screen" class="hidden bg-white rounded-2xl shadow-lg p-8 max-w-2xl mx-auto fade-in">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Chào, <span id="display-student-name"
+                            class="text-blue-600"></span>!</h2>
+                    <p class="text-gray-500 font-medium" id="display-class-name"></p>
+                </div>
+                <button onclick="logout()"
+                    class="bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 text-sm font-semibold transition"><i
+                        class="fas fa-sign-out-alt"></i> Thoát</button>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Chọn Môn Kiểm Tra Hôm Nay</label>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
+                        <button
+                            class="subj-btn border-2 border-gray-200 p-4 rounded-xl hover:border-blue-500 hover:bg-blue-50 focus:border-blue-500 focus:bg-blue-50 focus:outline-none transition text-center font-medium"
+                            onclick="selectSubject('Toán', this)"><i
+                                class="fas fa-calculator text-xl block mb-2 text-gray-400"></i>Toán Học</button>
+                        <button
+                            class="subj-btn border-2 border-gray-200 p-4 rounded-xl hover:border-blue-500 hover:bg-blue-50 focus:border-blue-500 focus:bg-blue-50 focus:outline-none transition text-center font-medium"
+                            onclick="selectSubject('Vật Lý', this)"><i
+                                class="fas fa-atom text-xl block mb-2 text-gray-400"></i>Vật Lý</button>
+                        <button
+                            class="subj-btn border-2 border-gray-200 p-4 rounded-xl hover:border-blue-500 hover:bg-blue-50 focus:border-blue-500 focus:bg-blue-50 focus:outline-none transition text-center font-medium"
+                            onclick="selectSubject('Hóa Học', this)"><i
+                                class="fas fa-flask text-xl block mb-2 text-gray-400"></i>Hóa Học</button>
+                        <button
+                            class="subj-btn border-2 border-gray-200 p-4 rounded-xl hover:border-blue-500 hover:bg-blue-50 focus:border-blue-500 focus:bg-blue-50 focus:outline-none transition text-center font-medium"
+                            onclick="selectSubject('Tiếng Anh', this)"><i
+                                class="fas fa-language text-xl block mb-2 text-gray-400"></i>Tiếng Anh</button>
+                        <button
+                            class="subj-btn border-2 border-gray-200 p-4 rounded-xl hover:border-blue-500 hover:bg-blue-50 focus:border-blue-500 focus:bg-blue-50 focus:outline-none transition text-center font-medium"
+                            onclick="selectSubject('Ngữ Văn', this)"><i
+                                class="fas fa-book-open text-xl block mb-2 text-gray-400"></i>Ngữ Văn</button>
+                        <button
+                            class="subj-btn border-2 border-gray-200 p-4 rounded-xl hover:border-blue-500 hover:bg-blue-50 focus:border-blue-500 focus:bg-blue-50 focus:outline-none transition text-center font-medium"
+                            onclick="selectSubject('Sinh Học', this)"><i
+                                class="fas fa-dna text-xl block mb-2 text-gray-400"></i>Sinh Học</button>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-100 p-4 rounded-xl text-sm text-amber-800">
+                    <p><i class="fas fa-exclamation-triangle mr-1"></i> <strong>Quy định:</strong> Cấu trúc 40 câu. Yêu
+                        cầu đạt ≥ 7 điểm. Dưới 7 điểm hệ thống sẽ yêu cầu làm lại.</p>
+                </div>
+
+                <button onclick="generateQuiz()"
+                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition shadow-lg text-lg transform hover:scale-[1.01]">
+                    Tạo Đề & Bắt Đầu Làm Bài <i class="fas fa-play ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- MÀN HÌNH LOADING TẠO ĐỀ -->
+        <div id="loading-screen" class="hidden text-center py-24 fade-in">
+            <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600 mb-6">
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800">AI Đang Tạo Đề...</h2>
+            <p class="text-gray-500 mt-2 max-w-md mx-auto">Đang phân tích dữ liệu, lựa chọn câu hỏi theo chuẩn SGK và
+                định dạng công thức môn học. Quá trình này có thể mất vài giây.</p>
+        </div>
+
+        <!-- MÀN HÌNH THI CHÍNH -->
+        <div id="quiz-screen" class="hidden fade-in">
+            <div
+                class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center mb-6 sticky top-20 z-40">
+                <div>
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800" id="quiz-title">Môn thi</h2>
+                    <p class="text-sm text-gray-500 font-medium">Gồm 40 câu trắc nghiệm (35 Dễ, 3 TB, 2 Khó)</p>
+                </div>
+                <div
+                    class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg font-bold border border-indigo-100 shadow-sm flex items-center">
+                    <i class="fas fa-clock mr-2"></i> Không giới hạn
+                </div>
+            </div>
+
+            <!-- Nơi chứa các câu hỏi được render -->
+            <div id="questions-container" class="space-y-6">
+                <!-- Nội dung câu hỏi sẽ được chèn vào đây -->
+            </div>
+
+            <div id="submit-btn-container" class="mt-10 text-center pb-12">
+                <button onclick="submitQuiz()"
+                    class="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-4 px-12 rounded-full hover:from-green-600 hover:to-emerald-700 transition shadow-xl text-xl transform hover:scale-105">
+                    Nộp Bài Chấm Điểm <i class="fas fa-check-circle ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- MÀN HÌNH 4: PHỤ HUYNH ĐĂNG NHẬP -->
+        <div id="parent-login-screen" class="hidden bg-white rounded-2xl shadow-lg p-8 max-w-md mx-auto mt-10 fade-in">
+            <div class="text-center mb-6">
+                <div
+                    class="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Cổng Phụ Huynh</h2>
+                <p class="text-sm text-gray-500 mt-1">Quản lý tiến độ và kết quả học tập</p>
+            </div>
+            <div class="space-y-4">
+                <input type="text" id="parent-login-id" placeholder="Mã Học Sinh (VD: HS1234)"
+                    class="w-full border-gray-300 rounded-lg p-3 text-center uppercase border focus:ring-2 focus:ring-purple-500 outline-none">
+                <input type="password" id="parent-login-pass" placeholder="Mật khẩu"
+                    class="w-full border-gray-300 rounded-lg p-3 text-center tracking-widest border focus:ring-2 focus:ring-purple-500 outline-none">
+                <button onclick="parentLogin()"
+                    class="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700 transition shadow-md">
+                    Xem Bảng Điểm
+                </button>
+            </div>
+            <div class="mt-6 border-t pt-4 text-center">
+                <p class="text-sm text-gray-500 mb-2">Chưa tạo hồ sơ cho con em?</p>
+                <button onclick="showScreen('register-screen')"
+                    class="text-purple-600 font-semibold hover:text-purple-800 transition"><i
+                        class="fas fa-user-plus mr-1"></i> Đăng ký tài khoản ngay</button>
+            </div>
+            <div class="text-center mt-2">
+                <button onclick="goHome()" class="text-sm text-gray-500 hover:text-gray-700">Quay lại</button>
+            </div>
+        </div>
+
+        <!-- MÀN HÌNH 5: DASHBOARD PHỤ HUYNH -->
+        <div id="parent-dashboard" class="hidden fade-in">
+            <div
+                class="bg-white rounded-2xl shadow-sm p-6 mb-6 flex flex-col md:flex-row md:justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Hồ sơ học sinh: <span id="dash-student-name"
+                            class="text-purple-600"></span></h2>
+                    <p class="text-sm text-gray-500 font-medium mt-1">Mã định danh: <span id="dash-student-id"
+                            class="font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-700"></span></p>
+                </div>
+                <div class="space-x-2 flex w-full md:w-auto">
+                    <button onclick="showChangePassModal()"
+                        class="flex-1 md:flex-none px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-semibold transition text-gray-700"><i
+                            class="fas fa-key mr-1"></i> Đổi Pass</button>
+                    <button onclick="goHome()"
+                        class="flex-1 md:flex-none px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-semibold transition"><i
+                            class="fas fa-sign-out-alt mr-1"></i> Thoát</button>
+                </div>
+            </div>
+
+            <!-- TIẾN ĐỘ HÔM NAY (Nhiệm vụ hàng ngày) -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 mb-6 border-l-4 border-purple-500 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                    <i class="fas fa-calendar-check text-9xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-4 relative z-10"><i
+                        class="fas fa-calendar-day text-purple-500 mr-2"></i>Nhiệm vụ kiểm tra hôm nay</h3>
+                <div id="today-status-container"
+                    class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 relative z-10">
+                    <!-- Javascript sẽ đổ dữ liệu trạng thái các môn vào đây -->
+                </div>
+            </div>
+
+            <!-- BẢNG LỊCH SỬ ĐIỂM SỐ -->
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-700"><i class="fas fa-history mr-2"></i>Lịch sử kiểm tra</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[600px]">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 text-sm">
+                                <th class="p-4 font-semibold w-1/4">Thời gian</th>
+                                <th class="p-4 font-semibold w-1/4">Môn thi</th>
+                                <th class="p-4 font-semibold text-center w-1/4">Điểm số (Hệ 10)</th>
+                                <th class="p-4 font-semibold text-center w-1/4">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body" class="divide-y divide-gray-100">
+                            <!-- Đổ dữ liệu lịch sử -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="no-history-msg" class="hidden text-center py-12 text-gray-500">
+                    <i class="fas fa-folder-open text-5xl mb-4 text-gray-300 block"></i>
+                    <p class="font-medium">Chưa có dữ liệu bài thi nào được ghi nhận.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MÀN HÌNH THÔNG BÁO TÙY CHỈNH -->
+    <div id="custom-modal"
+        class="hidden fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-[100] px-4 backdrop-blur-sm transition-opacity">
+        <div
+            class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center transform transition-transform">
+            <div id="modal-icon" class="text-5xl mb-4"></div>
+            <h3 id="modal-title" class="text-xl font-bold mb-2 text-gray-800"></h3>
+            <p id="modal-message" class="text-gray-600 mb-6"></p>
+            <div id="modal-content" class="mb-6 hidden text-left"></div>
+            <button id="modal-btn"
+                class="w-full py-3 px-4 rounded-xl font-bold text-white transition shadow-md focus:outline-none focus:ring-4 focus:ring-opacity-50"></button>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH CẢNH BÁO CHỐNG GIAN LẬN (Anti-Cheat Overlay) -->
+    <div id="cheat-warning-overlay"
+        class="hidden fixed inset-0 bg-red-600 bg-opacity-95 flex flex-col items-center justify-center z-[200] px-4 backdrop-blur-md">
+        <div
+            class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center transform scale-105 animation-pulse">
+            <div class="text-red-600 text-6xl mb-4 animate-bounce"><i class="fas fa-exclamation-triangle"></i></div>
+            <h2 class="text-2xl md:text-3xl font-black text-gray-900 mb-3 leading-tight">CẢNH BÁO GIAN LẬN!</h2>
+            <p id="cheat-overlay-text" class="text-gray-700 text-base md:text-lg mb-6">Bạn đã rời khỏi màn hình làm
+                bài.<br>Đây là lần vi phạm thứ:</p>
+            <div id="cheat-countdown"
+                class="text-5xl font-black text-red-600 mb-6 font-mono tracking-tighter shadow-inner bg-gray-50 rounded-xl py-4">
+                1 / 3</div>
+            <button id="btn-return-exam" onclick="hideCheatWarning()"
+                class="hidden w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition shadow-md mb-2">
+                Tôi hứa không vi phạm nữa
+            </button>
+            <p class="text-sm text-gray-500 font-semibold bg-gray-100 p-2 rounded-lg inline-block">Nếu vi phạm đủ 3 lần,
+                bài thi sẽ bị hủy!</p>
+        </div>
+    </div>
+
+    <script>
+        // --- TRẠNG THÁI TOÀN CỤC ---
+        let currentStudentInfo = { id: '', name: '', className: '', subject: '' };
+        let currentQuestions = [];
+        let currentParentSession = { id: '', pass: '' };
+
+        // BIẾN CHO HỆ THỐNG ANTI-CHEAT
+        let isExamActive = false;
+        let cheatWarnings = 0;
+        const MAX_CHEAT_WARNINGS = 3;
+        const REQUIRED_SUBJECTS = ['Toán', 'Vật Lý', 'Hóa Học', 'Tiếng Anh', 'Ngữ Văn', 'Sinh Học'];
+
+        // Sự kiện khi trang vừa tải xong
+        window.onload = () => {
+            fetchGasAPI({ action: "getApiKey" }).then(res => {
+                if (res.status === 'success' && res.apiKey) {
+                    apiKey = res.apiKey;
+                    console.log("Hệ thống đã sẵn sàng kết nối AI.");
+                } else {
+                    console.warn("Lưu ý: Chưa cấu hình API Key trong Google Sheet.");
+                }
+            });
+        };
+
+        // --- GIAO DIỆN & TIỆN ÍCH ---
+        function showScreen(screenId) {
+            const screens = ['home-screen', 'register-screen', 'student-login-screen', 'setup-screen', 'loading-screen', 'quiz-screen', 'parent-login-screen', 'parent-dashboard'];
+            screens.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+                document.getElementById(id).classList.remove('fade-in');
+            });
+
+            const targetScreen = document.getElementById(screenId);
+            targetScreen.classList.remove('hidden');
+            void targetScreen.offsetWidth;
+            targetScreen.classList.add('fade-in');
+            window.scrollTo(0, 0);
+        }
+
+        function goHome() {
+            currentStudentInfo = { id: '', name: '', className: '', subject: '' };
+            currentParentSession = { id: '', pass: '' };
+            isExamActive = false;
+            showScreen('home-screen');
+        }
+
+        function logout() {
+            showModal("Xác nhận thoát", "Bạn có chắc chắn muốn thoát khỏi phiên làm việc hiện tại?", "warning", "Có, Thoát", goHome);
+        }
+
+        function selectSubject(subjectName, btnElement) {
+            currentStudentInfo.subject = subjectName;
+            document.querySelectorAll('.subj-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50', 'ring-2', 'ring-blue-200');
+            });
+            btnElement.classList.add('border-blue-500', 'bg-blue-50', 'ring-2', 'ring-blue-200');
+        }
+
+        function showModal(title, message, type = 'info', btnLabel = 'Đóng', callback = null) {
+            const modal = document.getElementById('custom-modal');
+            const icon = document.getElementById('modal-icon');
+            const btn = document.getElementById('modal-btn');
+            const contentBox = document.getElementById('modal-content');
+
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-message').innerHTML = message;
+
+            if (!contentBox.innerHTML) {
+                contentBox.classList.add('hidden');
+            }
+
+            const styles = {
+                error: { icon: '<i class="fas fa-times-circle text-red-500"></i>', btn: 'bg-red-600 hover:bg-red-700 focus:ring-red-300' },
+                success: { icon: '<i class="fas fa-check-circle text-green-500"></i>', btn: 'bg-green-600 hover:bg-green-700 focus:ring-green-300' },
+                warning: { icon: '<i class="fas fa-exclamation-triangle text-amber-500"></i>', btn: 'bg-amber-500 hover:bg-amber-600 focus:ring-amber-300' },
+                info: { icon: '<i class="fas fa-info-circle text-blue-500"></i>', btn: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-300' }
+            };
+
+            icon.innerHTML = styles[type].icon;
+            btn.className = `w-full py-3 px-4 rounded-xl font-bold text-white transition shadow-md focus:outline-none focus:ring-4 focus:ring-opacity-50 ${styles[type].btn}`;
+            btn.innerText = btnLabel;
+            btn.style.display = 'block';
+
+            btn.onclick = () => {
+                modal.classList.add('hidden');
+                contentBox.innerHTML = '';
+                contentBox.classList.add('hidden');
+                if (callback) callback();
+            };
+            modal.classList.remove('hidden');
+        }
+
+        function showLoadingModal(title, message) {
+            showModal(title, message, 'info');
+            document.getElementById('modal-btn').style.display = 'none';
+            document.getElementById('modal-icon').innerHTML = '<div class="inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-600"></div>';
+        }
+
+        // --- GIAO TIẾP VỚI GAS ---
+        async function fetchGasAPI(payload) {
+            try {
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const textResponse = await response.text();
+                return JSON.parse(textResponse);
+            } catch (error) {
+                console.error("Lỗi mạng:", error);
+                return {
+                    status: "error",
+                    message: "<b>LỖI KẾT NỐI:</b><br>Kiểm tra URL Web App trong mã nguồn của bạn."
+                };
+            }
+        }
+
+        // --- CHỨC NĂNG ĐĂNG KÝ / ĐĂNG NHẬP ---
+        async function registerStudent() {
+            const name = document.getElementById('reg-student-name').value.trim();
+            const className = document.getElementById('reg-class-name').value;
+            const parentName = document.getElementById('reg-parent-name').value.trim();
+            const phone = document.getElementById('reg-parent-phone').value.trim();
+
+            if (!name || !parentName || !phone) {
+                return showModal("Thiếu thông tin", "Vui lòng điền đầy đủ các trường thông tin.", "warning");
+            }
+
+            showLoadingModal("Đang tạo hồ sơ...", "Hệ thống đang mã hóa và cấp phát ID ngẫu nhiên. Vui lòng đợi...");
+
+            const res = await fetchGasAPI({ action: "registerStudent", studentName: name, className: className, parentName: parentName, parentPhone: phone });
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            if (res.status === 'success') {
+                const htmlStr = `
+                    <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl mt-2 text-left shadow-inner">
+                        <p class="text-sm text-gray-600 mb-1 font-medium">Mã ID Học sinh (Dùng để thi):</p>
+                        <div class="flex items-center justify-between bg-white px-3 py-2 border rounded-lg">
+                            <span class="text-2xl font-bold text-blue-600 font-mono tracking-widest">${res.id}</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-1 mt-4 font-medium">Mật khẩu Phụ huynh (Dùng để xem điểm):</p>
+                        <div class="flex items-center justify-between bg-white px-3 py-2 border rounded-lg">
+                            <span class="text-2xl font-bold text-purple-600 font-mono tracking-widest">${res.pass}</span>
+                        </div>
+                    </div>
+                `;
+
+                showModal("Tạo Hồ Sơ Thành Công!", "Tài khoản của bạn đã được khởi tạo an toàn.", "success", "Tôi đã lưu thông tin", () => {
+                    document.getElementById('reg-student-name').value = '';
+                    document.getElementById('reg-parent-name').value = '';
+                    document.getElementById('reg-parent-phone').value = '';
+                    goHome();
+                });
+
+                const contentBox = document.getElementById('modal-content');
+                contentBox.innerHTML = htmlStr;
+                contentBox.classList.remove('hidden');
+
+            } else {
+                showModal("Lỗi Hệ Thống", res.message, "error");
+            }
+        }
+
+        async function studentLogin() {
+            const idInput = document.getElementById('login-student-id');
+            const id = idInput.value.trim().toUpperCase();
+
+            if (!id) return showModal("Chú ý", "Vui lòng nhập Mã ID Học Sinh.", "warning");
+
+            showLoadingModal("Đang xác thực...", "Đang kiểm tra kết nối với máy chủ dữ liệu.");
+            const res = await fetchGasAPI({ action: "studentLogin", id: id });
+
+            if (res.status === 'success') {
+                document.getElementById('custom-modal').classList.add('hidden');
+                currentStudentInfo.id = id;
+                currentStudentInfo.name = res.studentName;
+                currentStudentInfo.className = res.className;
+
+                document.getElementById('display-student-name').innerText = res.studentName;
+                document.getElementById('display-class-name').innerText = `Khối: ${res.className}`;
+                idInput.value = '';
+                showScreen('setup-screen');
+            } else {
+                showModal("Không tìm thấy dữ liệu", "Mã ID Học sinh không tồn tại. Vui lòng kiểm tra lại.", "error");
+            }
+        }
+
+        async function parentLogin() {
+            const idInput = document.getElementById('parent-login-id');
+            const passInput = document.getElementById('parent-login-pass');
+            const id = idInput.value.trim().toUpperCase();
+            const pass = passInput.value.trim();
+
+            if (!id || !pass) return showModal("Chú ý", "Vui lòng nhập đầy đủ Mã ID và Mật khẩu.", "warning");
+
+            showLoadingModal("Đang đăng nhập...", "Hệ thống đang đồng bộ dữ liệu điểm số.");
+            const res = await fetchGasAPI({ action: "parentLogin", id: id, pass: pass });
+
+            if (res.status === 'success') {
+                document.getElementById('custom-modal').classList.add('hidden');
+                currentParentSession = { id, pass };
+                document.getElementById('dash-student-name').innerText = res.studentName;
+                document.getElementById('dash-student-id').innerText = id;
+
+                idInput.value = '';
+                passInput.value = '';
+                renderHistory(res.history);
+                showScreen('parent-dashboard');
+            } else {
+                showModal("Từ chối truy cập", "Mã ID hoặc Mật khẩu không chính xác.", "error");
+            }
+        }
+
+        // --- CHỨC NĂNG DASHBOARD PHỤ HUYNH ---
+        function renderHistory(history) {
+            const tbody = document.getElementById('history-table-body');
+            const noMsg = document.getElementById('no-history-msg');
+            tbody.innerHTML = '';
+            renderTodayStatus(history);
+
+            if (!history || history.length === 0) {
+                noMsg.classList.remove('hidden');
+                return;
+            }
+            noMsg.classList.add('hidden');
+
+            history.reverse().forEach(row => {
+                const dateObj = new Date(row.time);
+                const dateStr = dateObj.toLocaleDateString('vi-VN');
+                const timeStr = dateObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
+                const badgeClass = row.status === 'Đạt'
+                    ? 'bg-green-100 text-green-700 border border-green-200'
+                    : 'bg-red-100 text-red-700 border border-red-200';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition border-b border-gray-50 last:border-0">
+                        <td class="p-4 text-sm text-gray-500">
+                            <span class="block font-medium text-gray-700">${dateStr}</span>
+                            <span class="text-xs"><i class="far fa-clock mr-1"></i>${timeStr}</span>
+                        </td>
+                        <td class="p-4 font-bold text-gray-800">${row.subject}</td>
+                        <td class="p-4 text-center text-lg font-black text-blue-600">${row.score}</td>
+                        <td class="p-4 text-center">
+                            <span class="px-3 py-1 rounded-md text-xs font-bold shadow-sm ${badgeClass}">${row.status}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderTodayStatus(history) {
+            const container = document.getElementById('today-status-container');
+            container.innerHTML = '';
+            const todayStr = new Date().toDateString();
+
+            const todayPassedSubjects = history.filter(row => {
+                const rowDate = new Date(row.time).toDateString();
+                return rowDate === todayStr && row.status === 'Đạt';
+            }).map(row => row.subject);
+
+            REQUIRED_SUBJECTS.forEach(subject => {
+                const isPassed = todayPassedSubjects.includes(subject);
+                const boxClass = isPassed ? "bg-green-50 border-green-200 text-green-700 shadow-sm" : "bg-gray-50 border-gray-200 text-gray-400";
+                const iconClass = isPassed ? '<i class="fas fa-check-circle text-green-500 text-2xl mb-1 drop-shadow-sm"></i>' : '<i class="fas fa-clock text-gray-300 text-2xl mb-1"></i>';
+                const statusText = isPassed ? "Hoàn thành" : "Chưa làm";
+
+                container.innerHTML += `
+                    <div class="border rounded-xl p-3 text-center flex flex-col items-center justify-center transition ${boxClass}">
+                        ${iconClass}
+                        <span class="font-bold text-sm mb-1">${subject}</span>
+                        <span class="text-[10px] uppercase tracking-wide font-bold bg-white bg-opacity-70 px-2 py-0.5 rounded-full">${statusText}</span>
+                    </div>
+                `;
+            });
+        }
+
+        function showChangePassModal() {
+            const html = `
+                <div class="text-left mt-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nhập mật khẩu mới:</label>
+                    <input type="password" id="cp-new" placeholder="Ít nhất 6 ký tự" class="w-full border-gray-300 border p-3 rounded-lg mb-4 text-center tracking-widest font-mono focus:ring-2 focus:ring-purple-500 outline-none">
+                    <button onclick="submitChangePass()" class="w-full bg-purple-600 text-white font-bold py-3 rounded-lg shadow hover:bg-purple-700 transition">Xác nhận đổi mật khẩu</button>
+                </div>
+            `;
+            const contentBox = document.getElementById('modal-content');
+            contentBox.innerHTML = html;
+            contentBox.classList.remove('hidden');
+            showModal("Đổi Mật Khẩu", "Tạo một mật khẩu mới dễ nhớ hơn cho bạn.", "info", "Hủy (Giữ nguyên)");
+        }
+
+        async function submitChangePass() {
+            const newPass = document.getElementById('cp-new').value;
+            if (newPass.length < 6) {
+                const input = document.getElementById('cp-new');
+                input.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+                setTimeout(() => input.classList.remove('border-red-500', 'ring-1', 'ring-red-500'), 2000);
+                return;
+            }
+
+            document.getElementById('custom-modal').classList.add('hidden');
+            showLoadingModal("Đang cập nhật...", "Xin vui lòng chờ hệ thống ghi nhận.");
+
+            const res = await fetchGasAPI({
+                action: "changePassword", id: currentParentSession.id,
+                oldPass: currentParentSession.pass, newPass: newPass
+            });
+
+            if (res.status === 'success') {
+                currentParentSession.pass = newPass;
+                showModal("Đổi Thành Công", "Mật khẩu của bạn đã được thay đổi.", "success");
+            } else {
+                showModal("Lỗi Cập Nhật", res.message, "error");
+            }
+        }
+
+        // --- PHẦN LÕI TẠO ĐỀ BẰNG AI (GEMINI) & THI ---
+        async function generateQuiz() {
+            if (!apiKey) {
+                return showModal("Lỗi Hệ Thống", "Quản trị viên chưa cấu hình API Key trong Google Sheet. Hệ thống AI đang tạm khóa.", "error");
+            }
+            if (!currentStudentInfo.subject) {
+                return showModal("Chưa Chọn Môn", "Vui lòng chọn một môn học trên màn hình trước khi tạo đề.", "warning");
+            }
+
+            showScreen('loading-screen');
+
+            // Reset trạng thái chống gian lận & nút nộp bài
+            cheatWarnings = 0;
+            document.getElementById('submit-btn-container').innerHTML = `
+                <button onclick="submitQuiz()"
+                    class="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-4 px-12 rounded-full hover:from-green-600 hover:to-emerald-700 transition shadow-xl text-xl transform hover:scale-105">
+                    Nộp Bài Chấm Điểm <i class="fas fa-check-circle ml-2"></i>
+                </button>
+            `;
+
+            const prompt = `Bạn là một chuyên gia giáo dục ra đề thi trắc nghiệm môn ${currentStudentInfo.subject} tại Việt Nam, dành cho học sinh ${currentStudentInfo.className}.
+YÊU CẦU BẮT BUỘC:
+1. Tạo CHÍNH XÁC 40 câu hỏi trắc nghiệm mới, không trùng lặp.
+2. Phân bổ: 35 câu nhận biết/thông hiểu, 3 câu vận dụng, 2 câu vận dụng cao.
+3. Mỗi câu bắt buộc có đúng 4 đáp án (A, B, C, D).
+4. NGÔN NGỮ: Tiếng Việt chuẩn mực.
+5. ĐỊNH DẠNG CÔNG THỨC (QUAN TRỌNG): BẮT BUỘC sử dụng cú pháp LaTeX bọc trong $$ $$ (cho công thức đứng riêng) hoặc \\( \\) (cho công thức nội dòng) đối với TẤT CẢ các phân số, số mũ, căn bậc, ký hiệu hóa học, phương trình vật lý. (Ví dụ: \\(H_2O\\), \\(x^2 + 2x = 0\\), \\(\\frac{1}{2}\\)). Tuyệt đối không dùng ký tự Unicode thông thường cho công thức Toán, Lý, Hóa.
+6. MINH HỌA (imageSvg): Nếu câu hỏi (như Hình học, Mạch điện) thực sự cần hình ảnh mô tả, hãy viết một đoạn mã HTML chứa thẻ <svg> gọn gàng, có màu sắc nhẹ nhàng vào trường này. Nếu không cần hình, để giá trị là một chuỗi rỗng "".
+
+Trả về KẾT QUẢ DUY NHẤT LÀ MỘT MẢNG JSON theo định dạng schema quy định. Không có text thừa.`;
+
+            // Gọi model API Gemini 2.5 Flash cực kì ổn định
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                question: { type: "STRING" },
+                                imageSvg: { type: "STRING" },
+                                options: { type: "ARRAY", items: { type: "STRING" } },
+                                answerIndex: { type: "INTEGER" }
+                            },
+                            required: ["question", "options", "answerIndex"]
+                        }
+                    }
+                }
+            };
+
+            try {
+                let resData;
+                let fetchSuccess = false;
+
+                for (let i = 0; i < 3; i++) {
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (response.ok) {
+                            resData = await response.json();
+                            fetchSuccess = true;
+                            break;
+                        }
+                    } catch (err) {
+                        console.warn(`Lần thử thứ ${i + 1} thất bại... Đang thử lại`);
+                    }
+                    if (i < 2) await new Promise(r => setTimeout(r, 2000));
+                }
+
+                if (!fetchSuccess) throw new Error("API Network Error");
+
+                const textResponse = resData?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!textResponse) throw new Error("API response empty");
+
+                // Dọn dẹp lỗi JSON bọc code markdowm do AI thi thoảng sinh ra
+                let cleanText = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+                let questions = JSON.parse(cleanText);
+
+                currentQuestions = questions.slice(0, 40);
+                renderQuiz();
+                showScreen('quiz-screen');
+                isExamActive = true;
+
+            } catch (error) {
+                console.error("Lỗi gọi API AI:", error);
+                showModal("Máy Chủ Bận", "Hệ thống AI đang xử lý quá nhiều yêu cầu hoặc mạng chập chờn. Xin vui lòng thử tạo đề lại.", "error", "Thử Lại Ngay", () => showScreen('setup-screen'));
+            }
+        }
+
+        function renderQuiz() {
+            document.getElementById('quiz-title').innerText = `${currentStudentInfo.subject} - Khối ${currentStudentInfo.className.replace('Lớp ', '')}`;
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            currentQuestions.forEach((q, index) => {
+                const qDiv = document.createElement('div');
+                qDiv.id = `question-block-${index}`;
+                qDiv.className = "bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200 transition duration-300 hover:shadow-md hover:border-indigo-200";
+
+                // Xử lý Markdown (In đậm **) và xuống dòng (\n) do AI sinh ra bị lỗi hiển thị
+                const formatText = (text) => text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+                const formattedQuestion = formatText(q.question);
+
+                // Xử lý chèn SVG nếu AI có tạo hình vẽ
+                let svgHtml = '';
+                if (q.imageSvg && q.imageSvg.includes('<svg')) {
+                    svgHtml = `<div class="svg-container bg-gray-50 rounded-lg p-4 my-4 border border-dashed border-gray-300">${q.imageSvg}</div>`;
+                }
+
+                // Tạo danh sách đáp án
+                let optionsHtml = '';
+                q.options.forEach((opt, optIndex) => {
+                    const cleanOpt = formatText(opt.replace(/^[A-D][\.\)]\s*/, ''));
+
+                    optionsHtml += `
+                        <div class="relative mb-3 group">
+                            <input type="radio" name="q${index}" id="q${index}_opt${optIndex}" value="${optIndex}" class="radio-custom sr-only">
+                            <label for="q${index}_opt${optIndex}" class="flex items-start p-4 border border-gray-200 rounded-xl cursor-pointer group-hover:bg-indigo-50 transition duration-200">
+                                <span class="w-7 h-7 flex-shrink-0 inline-flex items-center justify-center rounded-full border border-gray-300 mr-4 text-sm font-bold bg-white text-gray-500 shadow-sm mt-0.5 group-hover:border-indigo-400 group-hover:text-indigo-600">${String.fromCharCode(65 + optIndex)}</span>
+                                <span class="text-gray-800 math-container w-full leading-relaxed">${cleanOpt}</span>
+                            </label>
+                        </div>
+                    `;
+                });
+
+                // Gắn thành phần vào khối câu hỏi
+                qDiv.innerHTML = `
+                    <div class="flex items-start mb-4">
+                        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-lg text-sm font-bold mr-3 mt-0.5 whitespace-nowrap shadow-sm border border-indigo-200">Câu ${index + 1}</span> 
+                        <h3 class="text-lg font-semibold text-gray-900 math-container leading-relaxed">${formattedQuestion}</h3>
+                    </div>
+                    ${svgHtml}
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-6 mt-4">
+                        ${optionsHtml}
+                    </div>
+                `;
+                container.appendChild(qDiv);
+            });
+
+            window.scrollTo(0, 0);
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([container]).catch(function (err) {
+                    console.warn("Lỗi MathJax render công thức: ", err.message);
+                });
+            }
+        }
+
+        async function submitQuiz() {
+            let correctCount = 0;
+            let unAnsweredIndex = -1;
+
+            for (let i = 0; i < currentQuestions.length; i++) {
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                if (!selected) {
+                    unAnsweredIndex = i;
+                    break;
+                }
+                if (parseInt(selected.value) === currentQuestions[i].answerIndex) {
+                    correctCount++;
+                }
+            }
+
+            // Bắt lỗi làm thiếu câu -> Tự động cuộn đến câu thiếu
+            if (unAnsweredIndex !== -1) {
+                const targetBlock = document.getElementById(`question-block-${unAnsweredIndex}`);
+                targetBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Tạo hiệu ứng nhấp nháy cho câu chưa làm
+                targetBlock.classList.add('ring-4', 'ring-amber-400', 'bg-amber-50');
+                setTimeout(() => targetBlock.classList.remove('ring-4', 'ring-amber-400', 'bg-amber-50'), 2500);
+
+                return showModal("Khoan đã!", `Bạn vẫn chưa làm <b>Câu ${unAnsweredIndex + 1}</b>. Vui lòng chọn đáp án trước khi nộp.`, "warning");
+            }
+
+            isExamActive = false;
+
+            // HIỂN THỊ CÂU ĐÚNG / SAI LÊN GIAO DIỆN TRƯỚC
+            document.querySelectorAll('input[type="radio"]').forEach(el => el.disabled = true);
+
+            currentQuestions.forEach((q, i) => {
+                const selectedRadio = document.querySelector(`input[name="q${i}"]:checked`);
+                const selectedVal = parseInt(selectedRadio.value);
+                const correctVal = q.answerIndex;
+                const optLabels = document.querySelectorAll(`input[name="q${i}"] + label`);
+
+                // Tô xanh đáp án ĐÚNG
+                optLabels[correctVal].classList.add('bg-green-100', 'border-green-500', 'shadow-inner');
+                if (!optLabels[correctVal].querySelector('.fa-check-circle')) {
+                    optLabels[correctVal].innerHTML += `<div class="ml-auto flex-shrink-0 text-green-600"><i class="fas fa-check-circle text-xl"></i></div>`;
+                }
+
+                // Nếu học sinh chọn SAI, tô đỏ đáp án học sinh đã chọn
+                if (selectedVal !== correctVal) {
+                    optLabels[selectedVal].classList.add('bg-red-50', 'border-red-400');
+                    if (!optLabels[selectedVal].querySelector('.fa-times-circle')) {
+                        optLabels[selectedVal].innerHTML += `<div class="ml-auto flex-shrink-0 text-red-500"><i class="fas fa-times-circle text-xl"></i></div>`;
+                    }
+                }
+            });
+
+            // Thay đổi nút Nộp Bài thành Nút Về Sảnh
+            document.getElementById('submit-btn-container').innerHTML = `
+                <button onclick="goBackToSetup()"
+                    class="bg-gray-800 text-white font-bold py-4 px-12 rounded-full hover:bg-gray-900 transition shadow-xl text-xl transform hover:scale-105">
+                    Hoàn Thành & Đóng Bài Thi <i class="fas fa-sign-out-alt ml-2"></i>
+                </button>
+            `;
+
+            const score = parseFloat(((correctCount / currentQuestions.length) * 10).toFixed(2));
+
+            if (score >= 7) {
+                showLoadingModal("Đang mã hóa điểm số...", "Đang gửi kết quả bài làm an toàn lên hệ thống.");
+
+                const res = await fetchGasAPI({
+                    action: "saveResult",
+                    id: currentStudentInfo.id,
+                    studentName: currentStudentInfo.name,
+                    className: currentStudentInfo.className,
+                    subject: currentStudentInfo.subject,
+                    score: score,
+                    correctAnswers: correctCount
+                });
+
+                if (res.status === 'success') {
+                    document.getElementById('custom-modal').classList.add('hidden');
+                    showModal(
+                        "🎉 Xuất Sắc!",
+                        `Chúc mừng bạn đã hoàn thành nhiệm vụ bài kiểm tra.<br><br>Điểm số của bạn: <span class="text-3xl font-black text-green-600 block my-3">${score}</span>(Đúng ${correctCount}/40 câu).<br>Kết quả này đã được tự động gửi đến phụ huynh.`,
+                        "success",
+                        "Xem lại câu Đúng/Sai",
+                        () => { }
+                    );
+                } else {
+                    showModal("Cảnh báo mạng", "Bạn đã đạt điểm, nhưng quá trình gửi điểm cho máy chủ bị gián đoạn. Hãy chụp màn hình báo lại cho giáo viên nhé.", "error", "Xem lại bài làm", () => { });
+                }
+            } else {
+                showModal(
+                    "Chưa Đạt Yêu Cầu 😢",
+                    `Kết quả của bạn là: <span class="text-2xl font-black text-red-600 block my-2">${score} điểm</span> (Đúng ${correctCount}/40 câu).<br><br>Theo quy chế hệ thống, bạn cần đạt tối thiểu <strong>7.0 điểm</strong>.<br>Hãy xem lại các câu sai (màu đỏ) bên dưới để rút kinh nghiệm.`,
+                    "error",
+                    "Xem lại bài làm",
+                    () => { }
+                );
+            }
+        }
+
+        function goBackToSetup() {
+            // Xóa rỗng đề cũ để đảm bảo lần sau vào là tạo đề mới hoàn toàn
+            currentQuestions = [];
+            document.getElementById('questions-container').innerHTML = '';
+            showScreen('setup-screen');
+        }
+
+        // --- HỆ THỐNG CHỐNG GIAN LẬN (ANTI-CHEAT) ---
+
+        function handleVisibilityChange() {
+            if (!isExamActive) return;
+
+            if (document.hidden) {
+                cheatWarnings++;
+
+                const overlay = document.getElementById('cheat-warning-overlay');
+
+                if (cheatWarnings >= MAX_CHEAT_WARNINGS) {
+                    // Vi phạm lần 3 -> Hủy bài ngay lập tức
+                    document.getElementById('cheat-overlay-text').innerHTML = "Bạn đã vi phạm quy chế quá 3 lần.<br>Bài thi này đã bị đóng!";
+                    document.getElementById('cheat-countdown').innerHTML = `<i class="fas fa-lock"></i>`;
+                    document.getElementById('btn-return-exam').classList.add('hidden');
+                    overlay.classList.remove('hidden');
+
+                    setTimeout(() => triggerCheatPenalty(), 3000);
+                } else {
+                    // Cảnh cáo lần 1 và 2
+                    document.getElementById('cheat-overlay-text').innerHTML = "Bạn vừa rời khỏi màn hình làm bài!<br>Hệ thống ghi nhận lần vi phạm thứ:";
+                    document.getElementById('cheat-countdown').innerText = `${cheatWarnings} / ${MAX_CHEAT_WARNINGS}`;
+                    document.getElementById('btn-return-exam').classList.remove('hidden');
+                    overlay.classList.remove('hidden');
+
+                    isExamActive = false;
+                }
+            }
+        }
+
+        function hideCheatWarning() {
+            document.getElementById('cheat-warning-overlay').classList.add('hidden');
+            isExamActive = true;
+        }
+
+        function triggerCheatPenalty() {
+            isExamActive = false;
+            document.getElementById('cheat-warning-overlay').classList.add('hidden');
+
+            currentQuestions = [];
+            document.getElementById('questions-container').innerHTML = '';
+
+            showModal(
+                "ĐÃ HỦY BÀI THI DO VI PHẠM",
+                "Hệ thống giám sát phát hiện bạn đã rời khỏi giao diện làm bài quá 3 lần cho phép để chuyển sang ứng dụng/tab khác.<br><br><b>Toàn bộ bài thi hiện tại đã bị đóng và hủy kết quả.</b> Vui lòng tạo một đề thi mới và giữ màn hình luôn mở trong suốt quá trình làm bài.",
+                "error",
+                "Tôi đã hiểu & Trở về",
+                () => { showScreen('setup-screen'); }
+            );
+        }
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        window.addEventListener('blur', () => {
+            if (!document.hidden) handleVisibilityChange();
+        });
+
+    </script>
+</body>
+
+</html>
