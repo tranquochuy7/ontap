@@ -257,7 +257,7 @@
 
                 <div class="bg-amber-50 border border-amber-100 p-4 rounded-xl text-sm text-amber-800">
                     <p><i class="fas fa-exclamation-triangle mr-1"></i> <strong>Quy định:</strong> Cấu trúc 40 câu. Yêu
-                        cầu đạt ≥ 7 điểm. Dưới 7 điểm hệ thống sẽ yêu cầu làm lại.</p>
+                        cầu đạt ≥ 6 điểm. Dưới 6 điểm hệ thống sẽ yêu cầu làm lại.</p>
                 </div>
 
                 <button onclick="generateQuiz()"
@@ -963,7 +963,8 @@ Trả về KẾT QUẢ DUY NHẤT LÀ MỘT MẢNG JSON theo định dạng sche
 
             const score = parseFloat(((correctCount / currentQuestions.length) * 10).toFixed(2));
 
-            if (score >= 7) {
+            // ĐÃ THAY ĐỔI ĐIỀU KIỆN ĐẬU THÀNH 6 ĐIỂM
+            if (score >= 6) {
                 showLoadingModal("Đang mã hóa điểm số...", "Đang gửi kết quả bài làm an toàn lên hệ thống.");
 
                 const res = await fetchGasAPI({
@@ -991,7 +992,8 @@ Trả về KẾT QUẢ DUY NHẤT LÀ MỘT MẢNG JSON theo định dạng sche
             } else {
                 showModal(
                     "Chưa Đạt Yêu Cầu 😢",
-                    `Kết quả của bạn là: <span class="text-2xl font-black text-red-600 block my-2">${score} điểm</span> (Đúng ${correctCount}/40 câu).<br><br>Theo quy chế hệ thống, bạn cần đạt tối thiểu <strong>7.0 điểm</strong>.<br>Hãy xem lại các câu sai (màu đỏ) bên dưới để rút kinh nghiệm.`,
+                    // ĐÃ THAY ĐỔI NỘI DUNG THÔNG BÁO THÀNH 6.0 ĐIỂM
+                    `Kết quả của bạn là: <span class="text-2xl font-black text-red-600 block my-2">${score} điểm</span> (Đúng ${correctCount}/40 câu).<br><br>Theo quy chế hệ thống, bạn cần đạt tối thiểu <strong>6.0 điểm</strong>.<br>Hãy xem lại các câu sai (màu đỏ) bên dưới để rút kinh nghiệm.`,
                     "error",
                     "Xem lại bài làm",
                     () => { }
